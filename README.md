@@ -9,9 +9,9 @@ Music-Cover-ViewWithSquare is forked from andremion/Music-Cover-View, adding a n
 
 that shows a full squared image in a squared ImageView.
 
-Calling onStart() it rotates 10sec the squared image as a circled image.
+Calling start() it rotates 10sec the squared image as a circled image.
 
-Calling onMorph() it shows the full squared image.
+Calling morph() it shows the full fixed squared image.
 
 See the sample.
  
