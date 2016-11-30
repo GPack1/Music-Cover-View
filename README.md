@@ -18,7 +18,7 @@ See at [sample](https://github.com/GPack1/Music-Cover-ViewWithSquare/tree/master
 
 NOTE: adapting MusicCoverViewTransition to the new 'square' shape is still under working.
 
-## Changes done in this fork are licensed under:
+#### Changes done in this fork are licensed under:
 
     Copyright 2016 Paolo Giacomini
 
