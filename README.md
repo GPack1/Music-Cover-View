@@ -1,3 +1,19 @@
+
+Music-Cover-ViewWithSquare is forked from andremion/Music-Cover-View, adding a new 'square' shape
+
+        <attr name="shape" format="enum">
+            <enum name="rectangle" value="0"/>
+            <enum name="circle" value="1"/>
+            <enum name="square" value="2"/>
+        </attr>
+
+that shows a full squared image in a squared ImageView.
+Calling onStart() it rotates 10sec the squared image as a circled image.
+Calling onMorph() it shows the full squared image.
+See the sample.
+
+
+
 [![Android Arsenal Music-Cover-View](https://img.shields.io/badge/Android%20Arsenal-Music--Cover--View-green.svg?style=true)](https://android-arsenal.com/details/1/4218)
 [![License Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=true)](http://www.apache.org/licenses/LICENSE-2.0)
 ![minSdkVersion 21](https://img.shields.io/badge/minSdkVersion-21-red.svg?style=true)
