@@ -22,6 +22,12 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mCoverView = (SquaredMusicCoverView) findViewById(R.id.cover);
+        mCoverView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mCoverView.morph();
+            }
+        });
         mCoverView.setCallbacks(new MusicCoverView.Callbacks() {
             @Override
             public void onMorphEnd(MusicCoverView coverView) {

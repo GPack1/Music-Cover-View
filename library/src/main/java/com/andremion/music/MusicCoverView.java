@@ -74,12 +74,13 @@ public class MusicCoverView extends ImageView implements Animatable {
     private static final int DURATION = 2500;
     private static final float DURATION_PER_DEGREES = DURATION / FULL_ANGLE;
     private static final int DURATION_SQUARE = 10000;
-    private static final float DURATION_SQUARE_PER_DEGREES = DURATION / FULL_ANGLE;
+    private static final float DURATION_SQUARE_PER_DEGREES = DURATION_SQUARE / FULL_ANGLE;
 
     private final ValueAnimator mStartRotateAnimator;
     private final ValueAnimator mEndRotateAnimator;
     private final Transition mCircleToRectTransition;
     private final Transition mRectToCircleTransition;
+    private final Transition mSquareToSquareTransition;
 
     private final float mTrackSize;
     private final Paint mTrackPaint;
@@ -89,7 +90,7 @@ public class MusicCoverView extends ImageView implements Animatable {
     private final Path mRectPath = new Path();
     private final Path mTrackPath = new Path();
 
-    private boolean drawSquareAsCircle;
+    private boolean mDrawSquareAsCircle;
     private boolean mIsMorphing;
     private float mRadius = 0;
 
@@ -209,6 +210,24 @@ public class MusicCoverView extends ImageView implements Animatable {
             }
         });
 
+
+        mSquareToSquareTransition = new MorphTransition(SHAPE_SQUARE);
+        mSquareToSquareTransition.addTarget(this);
+        mSquareToSquareTransition.addListener(new TransitionAdapter() {
+            @Override
+            public void onTransitionStart(Transition transition) {
+                mIsMorphing = true;
+            }
+
+            @Override
+            public void onTransitionEnd(Transition transition) {
+                mIsMorphing = false;
+                mShape = SHAPE_SQUARE;
+                if (mCallbacks != null) {
+                    mCallbacks.onMorphEnd(MusicCoverView.this);
+                }
+            }
+        });
     }
 
     public void setCallbacks(Callbacks callbacks) {
@@ -267,6 +286,17 @@ public class MusicCoverView extends ImageView implements Animatable {
         }
     }
 
+    boolean getTransitionSquareAsCircle() {
+        return mDrawSquareAsCircle;
+    }
+
+    void setTransitionSquareAsCircle(boolean drawSquareAsCircle) {
+        if (drawSquareAsCircle != mDrawSquareAsCircle) {
+            mDrawSquareAsCircle = drawSquareAsCircle;
+            invalidate();
+        }
+    }
+
     float getMinRadius() {
         final int w = getWidth();
         final int h = getHeight();
@@ -302,7 +332,7 @@ public class MusicCoverView extends ImageView implements Animatable {
 
     private void setScaleType() {
         if (SHAPE_CIRCLE == mShape) {
-            setScaleType(ScaleType.CENTER_CROP);
+            setScaleType(ScaleType.CENTER_INSIDE);
         } else if (SHAPE_RECTANGLE == mShape) {
             setScaleType(ScaleType.CENTER_CROP);
         } else if (SHAPE_SQUARE == mShape) {
@@ -340,7 +370,7 @@ public class MusicCoverView extends ImageView implements Animatable {
         } else if (SHAPE_RECTANGLE == mShape) {
             canvas.clipPath(mClipPath, Region.Op.REPLACE);
         } else if (SHAPE_SQUARE == mShape) {
-            if (drawSquareAsCircle) {
+            if (getTransitionSquareAsCircle()) {
                 canvas.clipPath(mClipPath, Region.Op.REPLACE);
             } else {
                 canvas.clipPath(mRectPath, Region.Op.REPLACE);
@@ -364,9 +394,8 @@ public class MusicCoverView extends ImageView implements Animatable {
         } else if (SHAPE_RECTANGLE == mShape) {
             morphToCircle();
         } else if (SHAPE_SQUARE == mShape) {
-            drawSquareAsCircle = false;
-            setTransitionAlpha(ALPHA_TRANSPARENT);
-            invalidate();
+            mDrawSquareAsCircle = !getTransitionSquareAsCircle();
+            morphFromSquareToSquare();
         }
     }
 
@@ -386,13 +415,22 @@ public class MusicCoverView extends ImageView implements Animatable {
         setScaleType(ScaleType.CENTER_CROP);
     }
 
+    private void morphFromSquareToSquare() {
+        if (mIsMorphing) {
+            return;
+        }
+        TransitionManager.beginDelayedTransition((ViewGroup) getParent(), mSquareToSquareTransition);
+        setScaleType(ScaleType.CENTER_INSIDE);
+        setScaleType(ScaleType.CENTER_CROP);
+    }
+
     @Override
     public void start() {
         if (SHAPE_RECTANGLE == mShape) { // Only start rotate when shape is a circle or square
             return;
         }
         if (SHAPE_SQUARE == mShape) { // Start rotate drawing square as circle
-            drawSquareAsCircle = true;
+            setTransitionSquareAsCircle(true);
             setTransitionAlpha(ALPHA_OPAQUE);
             invalidate();
         }
@@ -413,7 +451,7 @@ public class MusicCoverView extends ImageView implements Animatable {
         return mStartRotateAnimator.isRunning() || mEndRotateAnimator.isRunning() || mIsMorphing;
     }
 
-    @IntDef({SHAPE_CIRCLE, SHAPE_RECTANGLE})
+    @IntDef({SHAPE_CIRCLE, SHAPE_RECTANGLE, SHAPE_SQUARE})
     @Retention(RetentionPolicy.SOURCE)
     public @interface Shape {
     }
@@ -442,6 +480,7 @@ public class MusicCoverView extends ImageView implements Animatable {
         Parcelable superState = super.onSaveInstanceState();
         SavedState ss = new SavedState(superState);
         ss.shape = getShape();
+        ss.drawSquareAsCircle = getTransitionSquareAsCircle();
         ss.trackColor = getTrackColor();
         ss.isRotating = mStartRotateAnimator.isRunning();
         return ss;
@@ -452,6 +491,7 @@ public class MusicCoverView extends ImageView implements Animatable {
         SavedState ss = (SavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
         setShape(ss.shape);
+        setTransitionSquareAsCircle(ss.drawSquareAsCircle);
         setTrackColor(ss.trackColor);
         if (ss.isRotating) {
             start();
@@ -461,12 +501,14 @@ public class MusicCoverView extends ImageView implements Animatable {
     public static class SavedState extends AbsSavedState {
 
         private int shape;
+        private boolean drawSquareAsCircle;
         private int trackColor;
         private boolean isRotating;
 
         private SavedState(Parcel in, ClassLoader loader) {
             super(in, loader);
             shape = in.readInt();
+            drawSquareAsCircle = (boolean) in.readValue(Boolean.class.getClassLoader());
             trackColor = in.readInt();
             isRotating = (boolean) in.readValue(Boolean.class.getClassLoader());
         }
@@ -479,6 +521,7 @@ public class MusicCoverView extends ImageView implements Animatable {
         public void writeToParcel(@NonNull Parcel dest, int flags) {
             super.writeToParcel(dest, flags);
             dest.writeInt(shape);
+            dest.writeValue(drawSquareAsCircle);
             dest.writeInt(trackColor);
             dest.writeValue(isRotating);
         }
@@ -487,7 +530,7 @@ public class MusicCoverView extends ImageView implements Animatable {
         public String toString() {
             return MusicCoverView.class.getSimpleName() + "." + SavedState.class.getSimpleName() + "{"
                     + Integer.toHexString(System.identityHashCode(this))
-                    + " shape=" + shape + ", trackColor=" + trackColor + ", isRotating=" + isRotating + "}";
+                    + " shape=" + shape + ", drawAsSquare=" + drawSquareAsCircle + ", trackColor=" + trackColor + ", isRotating=" + isRotating + "}";
         }
 
         public static final Parcelable.Creator<SavedState> CREATOR

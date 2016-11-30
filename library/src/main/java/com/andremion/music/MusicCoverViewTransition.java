@@ -112,20 +112,33 @@ public class MusicCoverViewTransition extends Transition {
         MusicCoverView coverView = (MusicCoverView) endValues.view;
         final float minRadius = coverView.getMinRadius();
         final float maxRadius = coverView.getMaxRadius();
+        final float fixRadius = coverView.getFixRadius();
 
-        float startRadius, endRadius;
-        int startTrackAlpha, endTrackAlpha;
+        float startRadius = 0.00f;
+        float endRadius = 0.00f;
+        int startTrackAlpha = 0;
+        int endTrackAlpha = 0;
 
-        if (mStartShape == MusicCoverView.SHAPE_RECTANGLE) {
-            startRadius = maxRadius;
-            endRadius = minRadius;
-            startTrackAlpha = MusicCoverView.ALPHA_TRANSPARENT;
-            endTrackAlpha = MusicCoverView.ALPHA_OPAQUE;
-        } else {
+        if (MusicCoverView.SHAPE_CIRCLE == mStartShape) {
             startRadius = minRadius;
             endRadius = maxRadius;
             startTrackAlpha = MusicCoverView.ALPHA_OPAQUE;
             endTrackAlpha = MusicCoverView.ALPHA_TRANSPARENT;
+        } else if (MusicCoverView.SHAPE_RECTANGLE == mStartShape) {
+            startRadius = maxRadius;
+            endRadius = minRadius;
+            startTrackAlpha = MusicCoverView.ALPHA_TRANSPARENT;
+            endTrackAlpha = MusicCoverView.ALPHA_OPAQUE;
+        } else if (MusicCoverView.SHAPE_SQUARE == mStartShape) {
+            startRadius = fixRadius;
+            endRadius = fixRadius;
+            if (!coverView.getTransitionSquareAsCircle()) {
+                startTrackAlpha = MusicCoverView.ALPHA_OPAQUE;
+                endTrackAlpha = MusicCoverView.ALPHA_TRANSPARENT;
+            } else {
+                startTrackAlpha = MusicCoverView.ALPHA_TRANSPARENT;
+                endTrackAlpha = MusicCoverView.ALPHA_OPAQUE;
+            }
         }
 
         List<Animator> animatorList = new ArrayList<>();

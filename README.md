@@ -1,3 +1,60 @@
+------------------------------------------------------------------------------------------------------------
+###Music-Cover-ViewWithSquare
+is forked from [andremion/Music-Cover-View](http://github.com/andremion/Music-Cover-View) project, adding a new 'square' shape
+
+
+        <attr name="shape" format="enum">
+            <enum name="rectangle" value="0"/>
+            <enum name="circle" value="1"/>
+            <enum name="square" value="2"/>
+        </attr>
+
+that shows a full squared image in a squared ImageView.
+
+Calling start() it rotates 10sec the squared image as a circled image.
+
+Calling morph() it switches to full squared image or circled image again.
+
+See at [sample](https://github.com/GPack1/Music-Cover-ViewWithSquare/tree/master/sample).
+
+
+#### andremion/Music-Cover-View project's License
+
+    Copyright 2016 André Mion
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+#### Changes done in this fork are licensed under:
+
+    Copyright 2016 Paolo Giacomini
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+------------------------------------------------------------------------------------------------------------
+
+
+
+
+
 [![Android Arsenal Music-Cover-View](https://img.shields.io/badge/Android%20Arsenal-Music--Cover--View-green.svg?style=true)](https://android-arsenal.com/details/1/4218)
 [![License Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=true)](http://www.apache.org/licenses/LICENSE-2.0)
 ![minSdkVersion 21](https://img.shields.io/badge/minSdkVersion-21-red.svg?style=true)
