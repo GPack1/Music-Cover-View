@@ -26,6 +26,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Region;
 import android.graphics.drawable.Animatable;
 import android.os.Build;
 import android.os.Parcel;
@@ -59,6 +60,7 @@ public class MusicCoverView extends ImageView implements Animatable {
 
     public static final int SHAPE_RECTANGLE = 0;
     public static final int SHAPE_CIRCLE = 1;
+    public static final int SHAPE_SQUARE = 2;
 
     static final int ALPHA_TRANSPARENT = 0;
     static final int ALPHA_OPAQUE = 255;
@@ -71,6 +73,8 @@ public class MusicCoverView extends ImageView implements Animatable {
     private static final float HALF_ANGLE = FULL_ANGLE / 2;
     private static final int DURATION = 2500;
     private static final float DURATION_PER_DEGREES = DURATION / FULL_ANGLE;
+    private static final int DURATION_SQUARE = 10000;
+    private static final float DURATION_SQUARE_PER_DEGREES = DURATION / FULL_ANGLE;
 
     private final ValueAnimator mStartRotateAnimator;
     private final ValueAnimator mEndRotateAnimator;
@@ -85,6 +89,7 @@ public class MusicCoverView extends ImageView implements Animatable {
     private final Path mRectPath = new Path();
     private final Path mTrackPath = new Path();
 
+    private boolean drawSquareAsCircle;
     private boolean mIsMorphing;
     private float mRadius = 0;
 
@@ -102,6 +107,11 @@ public class MusicCoverView extends ImageView implements Animatable {
     public MusicCoverView(Context context, AttributeSet attrs, final int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MusicCoverView);
+        @Shape int shape = a.getInt(R.styleable.MusicCoverView_shape, SHAPE_SQUARE);
+        @ColorInt int trackColor = a.getColor(R.styleable.MusicCoverView_trackColor, TRACK_COLOR);
+        a.recycle();
+
         // TODO: Canvas.clipPath works wrong when running with hardware acceleration on Android N
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
             setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -113,10 +123,20 @@ public class MusicCoverView extends ImageView implements Animatable {
         mTrackPaint.setStyle(Paint.Style.STROKE);
         mTrackPaint.setStrokeWidth(TRACK_WIDTH * density);
 
+        setShape(shape);
+        setTrackColor(trackColor);
+        setScaleType();
+
+
         mStartRotateAnimator = ObjectAnimator.ofFloat(this, View.ROTATION, 0, FULL_ANGLE);
         mStartRotateAnimator.setInterpolator(new LinearInterpolator());
-        mStartRotateAnimator.setRepeatCount(Animation.INFINITE);
-        mStartRotateAnimator.setDuration(DURATION);
+        if (SHAPE_SQUARE == mShape) {
+            mStartRotateAnimator.setDuration(DURATION_SQUARE);
+        } else {
+            mStartRotateAnimator.setDuration(DURATION);
+            mStartRotateAnimator.setRepeatCount(Animation.INFINITE);
+        }
+
         mStartRotateAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -124,7 +144,12 @@ public class MusicCoverView extends ImageView implements Animatable {
                 float target = current > HALF_ANGLE ? FULL_ANGLE : 0; // Choose the shortest distance to 0 rotation
                 float diff = target > 0 ? FULL_ANGLE - current : current;
                 mEndRotateAnimator.setFloatValues(current, target);
-                mEndRotateAnimator.setDuration((int) (DURATION_PER_DEGREES * diff));
+                if (SHAPE_SQUARE == mShape) {
+                    mEndRotateAnimator.setDuration((int) (DURATION_SQUARE_PER_DEGREES * diff));
+                } else {
+                    mEndRotateAnimator.setDuration((int) (DURATION_PER_DEGREES * diff));
+                }
+
                 mEndRotateAnimator.start();
             }
         });
@@ -184,14 +209,6 @@ public class MusicCoverView extends ImageView implements Animatable {
             }
         });
 
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MusicCoverView);
-        @Shape int shape = a.getInt(R.styleable.MusicCoverView_shape, SHAPE_RECTANGLE);
-        @ColorInt int trackColor = a.getColor(R.styleable.MusicCoverView_trackColor, TRACK_COLOR);
-        a.recycle();
-
-        setShape(shape);
-        setTrackColor(trackColor);
-        setScaleType();
     }
 
     public void setCallbacks(Callbacks callbacks) {
@@ -215,7 +232,7 @@ public class MusicCoverView extends ImageView implements Animatable {
 
     public void setTrackColor(@ColorInt int trackColor) {
         if (trackColor != getTrackColor()) {
-            int alpha = mShape == SHAPE_CIRCLE ? ALPHA_OPAQUE : ALPHA_TRANSPARENT;
+            int alpha = (mShape == SHAPE_CIRCLE) ? ALPHA_OPAQUE : ALPHA_TRANSPARENT;
             mTrackPaint.setColor(trackColor);
             mTrackAlpha = Color.alpha(trackColor);
             mTrackPaint.setAlpha(alpha * mTrackAlpha / ALPHA_OPAQUE);
@@ -262,6 +279,10 @@ public class MusicCoverView extends ImageView implements Animatable {
         return (float) Math.hypot(w / 2f, h / 2f);
     }
 
+    float getFixRadius() {
+        return (float) getHeight() / 2f;
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -272,15 +293,19 @@ public class MusicCoverView extends ImageView implements Animatable {
     private void calculateRadius() {
         if (SHAPE_CIRCLE == mShape) {
             mRadius = getMinRadius();
-        } else {
+        } else if (SHAPE_RECTANGLE == mShape) {
             mRadius = getMaxRadius();
+        } else if (SHAPE_SQUARE == mShape) {
+            mRadius = getFixRadius();
         }
     }
 
     private void setScaleType() {
         if (SHAPE_CIRCLE == mShape) {
-            setScaleType(ScaleType.CENTER_INSIDE);
-        } else {
+            setScaleType(ScaleType.CENTER_CROP);
+        } else if (SHAPE_RECTANGLE == mShape) {
+            setScaleType(ScaleType.CENTER_CROP);
+        } else if (SHAPE_SQUARE == mShape) {
             setScaleType(ScaleType.CENTER_CROP);
         }
     }
@@ -309,9 +334,22 @@ public class MusicCoverView extends ImageView implements Animatable {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.clipPath(mClipPath);
+
+        if (SHAPE_CIRCLE == mShape) {
+            canvas.clipPath(mClipPath, Region.Op.REPLACE);
+        } else if (SHAPE_RECTANGLE == mShape) {
+            canvas.clipPath(mClipPath, Region.Op.REPLACE);
+        } else if (SHAPE_SQUARE == mShape) {
+            if (drawSquareAsCircle) {
+                canvas.clipPath(mClipPath, Region.Op.REPLACE);
+            } else {
+                canvas.clipPath(mRectPath, Region.Op.REPLACE);
+            }
+        }
+
         super.onDraw(canvas);
         canvas.drawPath(mTrackPath, mTrackPaint);
+
     }
 
     @Override
@@ -323,8 +361,12 @@ public class MusicCoverView extends ImageView implements Animatable {
     public void morph() {
         if (SHAPE_CIRCLE == mShape) {
             morphToRect();
-        } else {
+        } else if (SHAPE_RECTANGLE == mShape) {
             morphToCircle();
+        } else if (SHAPE_SQUARE == mShape) {
+            drawSquareAsCircle = false;
+            setTransitionAlpha(ALPHA_TRANSPARENT);
+            invalidate();
         }
     }
 
@@ -346,8 +388,13 @@ public class MusicCoverView extends ImageView implements Animatable {
 
     @Override
     public void start() {
-        if (SHAPE_RECTANGLE == mShape) { // Only start rotate when shape is a circle
+        if (SHAPE_RECTANGLE == mShape) { // Only start rotate when shape is a circle or square
             return;
+        }
+        if (SHAPE_SQUARE == mShape) { // Start rotate drawing square as circle
+            drawSquareAsCircle = true;
+            setTransitionAlpha(ALPHA_OPAQUE);
+            invalidate();
         }
         if (!isRunning()) {
             mStartRotateAnimator.start();
