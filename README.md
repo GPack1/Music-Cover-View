@@ -1,5 +1,6 @@
 ------------------------------------------------------------------------------------------------------------
-Music-Cover-ViewWithSquare is forked from andremion/Music-Cover-View, adding a new 'square' shape
+###Music-Cover-ViewWithSquare
+is forked from andremion/Music-Cover-View, adding a new 'square' shape
 
         <attr name="shape" format="enum">
             <enum name="rectangle" value="0"/>
@@ -13,7 +14,7 @@ Calling start() it rotates 10sec the squared image as a circled image.
 
 Calling morph() it shows the full fixed squared image.
 
-See the sample.
+See at [sample](https://github.com/GPack1/Music-Cover-ViewWithSquare/tree/master/sample)
  
 ------------------------------------------------------------------------------------------------------------
  
