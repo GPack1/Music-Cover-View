@@ -1,1 +1,1 @@
-include ':sample',':sample with square', ':library'
+include ':sample with square', ':library'
