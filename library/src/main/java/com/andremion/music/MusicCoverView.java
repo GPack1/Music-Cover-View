@@ -350,7 +350,7 @@ public class MusicCoverView extends ImageView implements Animatable {
         mClipPath.reset();
         mClipPath.addCircle(centerX, centerY, mRadius, Path.Direction.CW);
 
-        final int trackRadius = Math.min(w, h);
+        final float trackRadius = mRadius;
         final int trackCount = (int) (trackRadius / mTrackSize);
 
         mTrackPath.reset();
@@ -366,9 +366,9 @@ public class MusicCoverView extends ImageView implements Animatable {
     protected void onDraw(Canvas canvas) {
 
         if (SHAPE_CIRCLE == mShape) {
-            canvas.clipPath(mClipPath, Region.Op.REPLACE);
+            canvas.clipPath(mClipPath);
         } else if (SHAPE_RECTANGLE == mShape) {
-            canvas.clipPath(mClipPath, Region.Op.REPLACE);
+            canvas.clipPath(mClipPath);
         } else if (SHAPE_SQUARE == mShape) {
             if (getTransitionSquareAsCircle()) {
                 canvas.clipPath(mClipPath, Region.Op.REPLACE);

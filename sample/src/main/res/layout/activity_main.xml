@@ -22,13 +22,12 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <com.andremion.music.sample.SquaredMusicCoverView
+    <com.andremion.music.MusicCoverView
         android:id="@+id/cover"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="@dimen/cover_height"
         android:layout_gravity="center"
-        android:src="@drawable/album_cover_fly_by_night"
-        app:shape="square" />
+        android:src="@drawable/album_cover_fly_by_night"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

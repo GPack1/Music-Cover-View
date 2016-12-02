@@ -12,7 +12,7 @@ import com.andremion.music.MusicCoverView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SquaredMusicCoverView mCoverView;
+    private MusicCoverView mCoverView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,17 +21,13 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mCoverView = (SquaredMusicCoverView) findViewById(R.id.cover);
-        mCoverView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mCoverView.morph();
-            }
-        });
+        mCoverView = (MusicCoverView) findViewById(R.id.cover);
         mCoverView.setCallbacks(new MusicCoverView.Callbacks() {
             @Override
             public void onMorphEnd(MusicCoverView coverView) {
-
+                if (MusicCoverView.SHAPE_CIRCLE == coverView.getShape()) {
+                    coverView.start();
+                }
             }
 
             @Override
@@ -47,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
                 if (mCoverView.isRunning()) {
                     mCoverView.stop();
                 } else {
-                    mCoverView.start();
+                    mCoverView.morph();
                 }
             }
         });

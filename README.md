@@ -15,7 +15,9 @@ Calling start() it rotates 10sec the squared image as a circled image.
 
 Calling morph() it switches to full squared image or circled image again.
 
-See at [sample](https://github.com/GPack1/Music-Cover-ViewWithSquare/tree/master/sample).
+![SampleWithSquare](https://github.com/GPack1/Music-Cover-ViewWithSquare/blob/master/art/samplewithsquare.gif)
+
+See at [sample](https://github.com/GPack1/Music-Cover-ViewWithSquare/tree/master/sample-with-square).
 
 
 #### andremion/Music-Cover-View project's License
