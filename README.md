@@ -17,7 +17,7 @@ Calling morph() it switches to full squared image or circled image again.
 
 ![SampleWithSquare](https://github.com/GPack1/Music-Cover-ViewWithSquare/blob/master/art/samplewithsquare.gif)
 
-See at [sample](https://github.com/GPack1/Music-Cover-ViewWithSquare/tree/master/sample-with-square).
+See at [sample](https://github.com/GPack1/Music-Cover-ViewWithSquare/tree/master/sample%20with%20square).
 
 
 #### andremion/Music-Cover-View project's License
