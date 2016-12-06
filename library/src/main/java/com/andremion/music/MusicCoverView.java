@@ -28,6 +28,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Region;
 import android.graphics.drawable.Animatable;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -38,6 +40,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.os.ParcelableCompat;
 import android.support.v4.os.ParcelableCompatCreatorCallbacks;
 import android.support.v4.view.AbsSavedState;
+import android.support.v7.graphics.Palette;
 import android.transition.ChangeImageTransform;
 import android.transition.ChangeTransform;
 import android.transition.Transition;
@@ -68,6 +71,8 @@ public class MusicCoverView extends ImageView implements Animatable {
     private static final float TRACK_SIZE = 10;
     private static final float TRACK_WIDTH = 1;
     private static final int TRACK_COLOR = Color.parseColor("#56FFFFFF");
+    private static final int DISC_CENTER_COLOR = Color.parseColor("white");
+    private static final int DISC_CENTER_DECOR_COLOR = 0xCC000000;
 
     private static final float FULL_ANGLE = 360;
     private static final float HALF_ANGLE = FULL_ANGLE / 2;
@@ -86,9 +91,17 @@ public class MusicCoverView extends ImageView implements Animatable {
     private final Paint mTrackPaint;
     private int mTrackAlpha;
 
+    private int mDiscCenterColor = DISC_CENTER_COLOR;
+    private final Paint mDiscPaintCenterDecor;
+    private final Paint mDiscPaintCenter;
+
     private final Path mClipPath = new Path();
-    private final Path mRectPath = new Path();
+    private final Path mRectSquarePath = new Path();
     private final Path mTrackPath = new Path();
+
+    private final Path mClipPathAsCircle = new Path();
+    private final Path mDiscPathCenterDecor = new Path();
+    private final Path mDiscPathCenter = new Path();
 
     private boolean mDrawSquareAsCircle;
     private boolean mIsMorphing;
@@ -124,10 +137,20 @@ public class MusicCoverView extends ImageView implements Animatable {
         mTrackPaint.setStyle(Paint.Style.STROKE);
         mTrackPaint.setStrokeWidth(TRACK_WIDTH * density);
 
+        mDiscPaintCenterDecor = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mDiscPaintCenterDecor.setStyle(Paint.Style.FILL);
+        mDiscPaintCenter = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mDiscPaintCenter.setStyle(Paint.Style.FILL);
+
         setShape(shape);
         setTrackColor(trackColor);
+        if (getDrawable() != null
+                && ((BitmapDrawable) getDrawable()).getBitmap() != null) {
+            setCenterColor(DISC_CENTER_COLOR, Palette.generate(((BitmapDrawable) getDrawable()).getBitmap(), 32).getLightVibrantColor(DISC_CENTER_DECOR_COLOR));
+        } else {
+            setCenterColor(DISC_CENTER_COLOR, DISC_CENTER_DECOR_COLOR);
+        }
         setScaleType();
-
 
         mStartRotateAnimator = ObjectAnimator.ofFloat(this, View.ROTATION, 0, FULL_ANGLE);
         mStartRotateAnimator.setInterpolator(new LinearInterpolator());
@@ -263,6 +286,33 @@ public class MusicCoverView extends ImageView implements Animatable {
         return mTrackPaint.getColor();
     }
 
+    public void setCenterColor(@ColorInt int centerColor, @ColorInt int centerDecorColor) {
+
+        if (mDiscPaintCenterDecor != null
+                && mDiscPaintCenter != null) {
+
+            if (centerColor != getCenterColor()) {
+                mDiscCenterColor = centerColor;
+                mDiscPaintCenter.setColor(centerColor);
+            }
+
+            mDiscPaintCenterDecor.setColor(centerDecorColor);
+
+            int alpha = (mShape == SHAPE_CIRCLE) ? ALPHA_OPAQUE : ALPHA_TRANSPARENT;
+            mDiscPaintCenterDecor.setAlpha(alpha);
+            mDiscPaintCenter.setAlpha(alpha);
+            invalidate();
+        }
+    }
+
+    public int getCenterColor() {
+        return mDiscPaintCenter.getColor();
+    }
+
+    public int getCenterDecorColor() {
+        return mDiscPaintCenterDecor.getColor();
+    }
+
     float getTransitionRadius() {
         return mRadius;
     }
@@ -282,6 +332,8 @@ public class MusicCoverView extends ImageView implements Animatable {
     void setTransitionAlpha(@IntRange(from = ALPHA_TRANSPARENT, to = ALPHA_OPAQUE) int alpha) {
         if (alpha != getTransitionAlpha()) {
             mTrackPaint.setAlpha(alpha * mTrackAlpha / ALPHA_OPAQUE);
+            mDiscPaintCenterDecor.setAlpha(alpha);
+            mDiscPaintCenter.setAlpha(alpha);
             invalidate();
         }
     }
@@ -354,12 +406,34 @@ public class MusicCoverView extends ImageView implements Animatable {
         final int trackCount = (int) (trackRadius / mTrackSize);
 
         mTrackPath.reset();
-        for (int i = 3; i < trackCount; i++) {
+        for (int i = 4; i < trackCount; i++) {
             mTrackPath.addCircle(centerX, centerY, trackRadius * (i / (float) trackCount), Path.Direction.CW);
         }
 
-        mRectPath.reset();
-        mRectPath.addRect(0, 0, w, h, Path.Direction.CW);
+        mClipPathAsCircle.reset();
+        mClipPathAsCircle.addCircle(centerX, centerY, mRadius, Path.Direction.CW);
+
+        mDiscPathCenterDecor.reset();
+        mDiscPathCenterDecor.addCircle(centerX, centerY, trackRadius * (3 / (float) trackCount), Path.Direction.CW);
+
+        mDiscPathCenter.reset();
+        mDiscPathCenter.addCircle(centerX, centerY, trackRadius * (1 / (float) trackCount), Path.Direction.CW);
+
+        mRectSquarePath.reset();
+        mRectSquarePath.addRect(0, 0, w, h, Path.Direction.CW);
+    }
+
+
+    @Override
+    public void setImageDrawable(Drawable drawable) {
+        super.setImageDrawable(drawable);
+
+        if (drawable != null
+                && ((BitmapDrawable) drawable).getBitmap() != null) {
+            setCenterColor(mDiscCenterColor, Palette.generate(((BitmapDrawable) drawable).getBitmap(), 32).getLightVibrantColor(DISC_CENTER_DECOR_COLOR));
+        } else {
+            setCenterColor(mDiscCenterColor, DISC_CENTER_DECOR_COLOR);
+        }
     }
 
     @Override
@@ -371,14 +445,16 @@ public class MusicCoverView extends ImageView implements Animatable {
             canvas.clipPath(mClipPath);
         } else if (SHAPE_SQUARE == mShape) {
             if (getTransitionSquareAsCircle()) {
-                canvas.clipPath(mClipPath, Region.Op.REPLACE);
+                canvas.clipPath(mClipPathAsCircle, Region.Op.REPLACE);
             } else {
-                canvas.clipPath(mRectPath, Region.Op.REPLACE);
+                canvas.clipPath(mRectSquarePath, Region.Op.REPLACE);
             }
         }
 
         super.onDraw(canvas);
         canvas.drawPath(mTrackPath, mTrackPaint);
+        canvas.drawPath(mDiscPathCenterDecor, mDiscPaintCenterDecor);
+        canvas.drawPath(mDiscPathCenter, mDiscPaintCenter);
 
     }
 
@@ -389,14 +465,15 @@ public class MusicCoverView extends ImageView implements Animatable {
     }
 
     public void morph() {
-        if (SHAPE_CIRCLE == mShape) {
-            morphToRect();
-        } else if (SHAPE_RECTANGLE == mShape) {
-            morphToCircle();
-        } else if (SHAPE_SQUARE == mShape) {
-            mDrawSquareAsCircle = !getTransitionSquareAsCircle();
-            morphFromSquareToSquare();
-        }
+        if (!isRunning())
+            if (SHAPE_CIRCLE == mShape) {
+                morphToRect();
+            } else if (SHAPE_RECTANGLE == mShape) {
+                morphToCircle();
+            } else if (SHAPE_SQUARE == mShape) {
+                mDrawSquareAsCircle = !getTransitionSquareAsCircle();
+                morphFromSquareToSquare();
+            }
     }
 
     private void morphToCircle() {

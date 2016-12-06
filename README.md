@@ -11,9 +11,9 @@ is forked from [andremion/Music-Cover-View](http://github.com/andremion/Music-Co
 
 that shows a full squared image in a squared ImageView.
 
-Calling start() it rotates 10sec the squared image as a circled image.
+Calling start() it rotates 10sec the squared image as a circled image with decored center.
 
-Calling morph() it switches to full squared image or circled image again.
+Calling morph() it switches to full squared image or to circled image again.
 
 ![SampleWithSquare](https://github.com/GPack1/Music-Cover-ViewWithSquare/blob/master/art/samplewithsquare.gif)
 
